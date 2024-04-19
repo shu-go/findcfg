@@ -70,7 +70,6 @@ func (f *Finder) AddExact(path string) {
 // baseName is without ".ext", like "myconfig"
 func (f *Finder) Find(baseName string) *Found {
 	for _, p := range f.Exacts {
-		println(p)
 		if s, err := os.Stat(p); err != nil || s.IsDir() {
 			continue
 		}
@@ -89,7 +88,6 @@ func (f *Finder) Find(baseName string) *Found {
 
 		for _, ext := range f.Exts {
 			p := filepath.Join(dir, baseName+ext)
-			println(p, desc)
 			if s, err := os.Stat(p); err != nil || s.IsDir() {
 				continue
 			}
