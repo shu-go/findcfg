@@ -55,9 +55,12 @@ func (f *Finder) AddDirs(dirs ...DirFunc) {
 	f.Dirs = append(f.Dirs, dirs...)
 }
 
-// AddExacts adds absolute file paths.
-func (f *Finder) AddExacts(paths ...string) {
-	f.Exacts = append(f.Exacts, paths...)
+// AddExact adds an absolute file path.
+func (f *Finder) AddExact(path string) {
+	if path == "" {
+		return
+	}
+	f.Exacts = append(f.Exacts, path)
 }
 
 // Find try to find a config file accordding to its dirs and exts.
@@ -67,6 +70,7 @@ func (f *Finder) AddExacts(paths ...string) {
 // baseName is without ".ext", like "myconfig"
 func (f *Finder) Find(baseName string) *Found {
 	for _, p := range f.Exacts {
+		println(p)
 		if s, err := os.Stat(p); err != nil || s.IsDir() {
 			continue
 		}
@@ -105,6 +109,10 @@ func (f *Finder) Find(baseName string) *Found {
 //
 // This method returns the firstly tried path.
 func (f *Finder) FallbackPath(baseName string) string {
+	if len(f.Exacts) > 0 {
+		return f.Exacts[0]
+	}
+
 	if len(f.Dirs) == 0 {
 		return ""
 	}
