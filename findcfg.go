@@ -21,8 +21,9 @@ import (
 type DirFunc func() (path, desc string)
 
 type Finder struct {
-	Exts []string
-	Dirs []DirFunc
+	Exts   []string
+	Dirs   []DirFunc
+	Exacts []string // absolute file path
 }
 
 type Found struct {
@@ -54,12 +55,28 @@ func (f *Finder) AddDirs(dirs ...DirFunc) {
 	f.Dirs = append(f.Dirs, dirs...)
 }
 
+// AddExacts adds absolute file paths.
+func (f *Finder) AddExacts(paths ...string) {
+	f.Exacts = append(f.Exacts, paths...)
+}
+
 // Find try to find a config file accordding to its dirs and exts.
 //
 // You should call AddXXX before call this method.
 //
 // baseName is without ".ext", like "myconfig"
 func (f *Finder) Find(baseName string) *Found {
+	for _, p := range f.Exacts {
+		if s, err := os.Stat(p); err != nil || s.IsDir() {
+			continue
+		}
+		return &Found{
+			Path:    p,
+			Ext:     filepath.Ext(p),
+			DirDesc: "exact",
+		}
+	}
+
 	for _, getdir := range f.Dirs {
 		dir, desc := getdir()
 		if dir == "" {
@@ -68,6 +85,7 @@ func (f *Finder) Find(baseName string) *Found {
 
 		for _, ext := range f.Exts {
 			p := filepath.Join(dir, baseName+ext)
+			println(p, desc)
 			if s, err := os.Stat(p); err != nil || s.IsDir() {
 				continue
 			}

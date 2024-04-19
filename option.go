@@ -117,3 +117,9 @@ func ExecutableDir(sub ...string) FinderOption {
 		})
 	}
 }
+
+func ExactPath(exacts ...string) FinderOption {
+	return func(f *Finder) {
+		f.AddExacts(exacts...)
+	}
+}
