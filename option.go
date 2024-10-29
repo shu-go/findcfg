@@ -48,6 +48,13 @@ func Ext(exts ...string) FinderOption {
 	}
 }
 
+// arbitrary base names
+func Name(names string) FinderOption {
+	return func(f *Finder) {
+		f.AddNames(names)
+	}
+}
+
 // arbitrary dirs
 func Dir(sub ...string) FinderOption {
 	return func(f *Finder) {

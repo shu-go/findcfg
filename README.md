@@ -8,16 +8,18 @@ Package findcfg finds a config file.
 
 ```go
 // finder for a YAML file in os.Executable() and os.UserConfigDir()+myapp
-finder := findcfg.New(
+finder := findcfg.New( // config.yaml
+    findcfg.Name("config"),
     findcfg.YAML(),
     findcfg.ExecutableDir(),
     findcfg.UserConfigDir("myapp"),
 )
-found := finder.Find("config") // config.yaml
-if found != nil {
+
+if found := finder.Find(); found != nil {
 	return found.Path
 }
-return finder.FallbackPath(configName)
+
+return finder.FallbackPath()
 ```
 
 # go get

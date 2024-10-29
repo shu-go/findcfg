@@ -22,6 +22,7 @@ type DirFunc func() (path, desc string)
 
 type Finder struct {
 	Exts   []string
+	Names  []string
 	Dirs   []DirFunc
 	Exacts []string // absolute file path
 }
@@ -49,6 +50,11 @@ func (f *Finder) AddExts(exts ...string) {
 	f.Exts = append(f.Exts, exts...)
 }
 
+// AddNames adds base names without extentions.
+func (f *Finder) AddNames(names ...string) {
+	f.Names = append(f.Names, names...)
+}
+
 // AddDirs adds search paths.
 // If no dirs given by AddDirs and New, the Finder does not find anything.
 func (f *Finder) AddDirs(dirs ...DirFunc) {
@@ -68,7 +74,7 @@ func (f *Finder) AddExact(path string) {
 // You should call AddXXX before call this method.
 //
 // baseName is without ".ext", like "myconfig"
-func (f *Finder) Find(baseName string) *Found {
+func (f *Finder) Find() *Found {
 	for _, p := range f.Exacts {
 		if s, err := os.Stat(p); err != nil || s.IsDir() {
 			continue
@@ -86,15 +92,17 @@ func (f *Finder) Find(baseName string) *Found {
 			continue
 		}
 
-		for _, ext := range f.Exts {
-			p := filepath.Join(dir, baseName+ext)
-			if s, err := os.Stat(p); err != nil || s.IsDir() {
-				continue
-			}
-			return &Found{
-				Path:    p,
-				Ext:     ext,
-				DirDesc: desc,
+		for _, name := range f.Names {
+			for _, ext := range f.Exts {
+				p := filepath.Join(dir, name+ext)
+				if s, err := os.Stat(p); err != nil || s.IsDir() {
+					continue
+				}
+				return &Found{
+					Path:    p,
+					Ext:     ext,
+					DirDesc: desc,
+				}
 			}
 		}
 	}
@@ -106,7 +114,7 @@ func (f *Finder) Find(baseName string) *Found {
 // Call this method if Find does not find anything.
 //
 // This method returns the firstly tried path.
-func (f *Finder) FallbackPath(baseName string) string {
+func (f *Finder) FallbackPath() string {
 	if len(f.Exacts) > 0 {
 		return f.Exacts[0]
 	}
@@ -114,9 +122,12 @@ func (f *Finder) FallbackPath(baseName string) string {
 	if len(f.Dirs) == 0 {
 		return ""
 	}
+	if len(f.Names) == 0 {
+		return ""
+	}
 	if len(f.Exts) == 0 {
 		return ""
 	}
 	d, _ := f.Dirs[0]()
-	return filepath.Join(d, baseName+f.Exts[0])
+	return filepath.Join(d, f.Names[0]+f.Exts[0])
 }
